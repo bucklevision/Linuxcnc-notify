@@ -7,7 +7,11 @@ issue machine commands.
 
 ## Install
 
-Download the `.deb`, then:
+Download the current Debian package:
+
+[linuxcnc-notify_0.2.3_all.deb](https://github.com/bucklevision/Linuxcnc-notify/raw/refs/heads/main/dist/linuxcnc-notify_0.2.3_all.deb)
+
+Then install it:
 
 ```bash
 sudo apt install ./linuxcnc-notify_0.2.3_all.deb
