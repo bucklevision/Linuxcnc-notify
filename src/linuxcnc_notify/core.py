@@ -56,7 +56,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1.1"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:

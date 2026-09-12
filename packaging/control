@@ -1,9 +1,9 @@
 Package: linuxcnc-notify
-Version: 0.1.0
+Version: 0.1.1
 Section: misc
 Priority: optional
 Architecture: all
-Depends: python3 (>= 3.7), python3-linuxcnc
+Depends: python3 (>= 3.7), ca-certificates, linuxcnc-uspace (>= 2.8) | python3-linuxcnc
 Recommends: qrencode
 Maintainer: bucklevision <bucklevision@users.noreply.github.com>
 Homepage: https://github.com/bucklevision/linuxcnc-notify

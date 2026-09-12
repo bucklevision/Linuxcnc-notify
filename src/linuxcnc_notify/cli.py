@@ -1,5 +1,7 @@
 import argparse
+import importlib.util
 import json
+import platform
 import shutil
 import subprocess
 import sys
@@ -20,6 +22,24 @@ def pair(config):
     print("\nInstall the ntfy phone app, then subscribe using the server and topic above.")
 
 
+def doctor():
+    checks = [
+        ("Python", platform.python_version(), sys.version_info >= (3, 7)),
+        ("LinuxCNC Python module", "available" if importlib.util.find_spec("linuxcnc") else "missing",
+         importlib.util.find_spec("linuxcnc") is not None),
+        ("systemctl", shutil.which("systemctl") or "missing", shutil.which("systemctl") is not None),
+    ]
+    failed = False
+    for name, detail, okay in checks:
+        print(f"{'OK' if okay else 'FAIL':4}  {name}: {detail}")
+        failed |= not okay
+    if failed:
+        print("\nLinuxCNC Notify cannot run until the failed requirement is available.")
+        return 1
+    print("\nThis installation is compatible.")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(prog="linuxcnc-notify")
     parser.add_argument("--version", action="version", version=__version__)
@@ -28,6 +48,7 @@ def main():
     sub.add_parser("pair")
     sub.add_parser("show-config")
     sub.add_parser("test")
+    sub.add_parser("doctor")
     args = parser.parse_args()
     try:
         config = ensure_config()
@@ -40,6 +61,8 @@ def main():
         elif args.command == "test":
             publish(config, "LinuxCNC Notify test", f"Notifications are configured for {config['machine_name']}", tags=["white_check_mark"])
             print("Test notification sent.")
+        elif args.command == "doctor":
+            return doctor()
         else:
             parser.print_help()
     except PermissionError:

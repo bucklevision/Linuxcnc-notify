@@ -10,7 +10,8 @@ issue machine commands.
 Download the `.deb`, then:
 
 ```bash
-sudo apt install ./linuxcnc-notify_0.1.0_all.deb
+sudo apt install ./linuxcnc-notify_0.1.1_all.deb
+sudo linuxcnc-notify doctor
 sudo linuxcnc-notify pair
 sudo linuxcnc-notify test
 ```
@@ -28,6 +29,7 @@ The local status and pairing page is available on the LinuxCNC computer at
 sudo linuxcnc-notify pair
 sudo linuxcnc-notify test
 sudo linuxcnc-notify show-config
+sudo linuxcnc-notify doctor
 systemctl status linuxcnc-notify
 journalctl -u linuxcnc-notify -f
 ```
@@ -70,3 +72,16 @@ service has no LinuxCNC command channel.
 ## License
 
 GPL-2.0-or-later.
+
+## Compatibility
+
+The package is architecture-independent and uses only Python 3.7 standard-library
+features. It targets packaged LinuxCNC 2.8 and later on Debian-derived systems,
+including amd64, i386, armhf and arm64. Debian's `linuxcnc-uspace` includes the
+Python interface; the alternative `python3-linuxcnc` dependency supports
+distributions which split that interface into its own package. Run `doctor` to
+check the three runtime requirements without starting or controlling a machine.
+
+Run-in-place developer builds are not automatically discoverable because their
+Python paths are configured by the developer shell rather than the operating
+system package manager.
