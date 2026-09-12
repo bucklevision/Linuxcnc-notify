@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+install -d -m 700 /etc/linuxcnc-notify
+install -d -m 700 /var/lib/linuxcnc-notify
+if [ ! -e /etc/linuxcnc-notify/config.json ]; then
+    LINUXCNC_NOTIFY_CONFIG=/etc/linuxcnc-notify/config.json /usr/bin/linuxcnc-notify show-config >/dev/null
+fi
+chmod 600 /etc/linuxcnc-notify/config.json
+systemctl daemon-reload >/dev/null 2>&1 || true
+systemctl enable --now linuxcnc-notify.service >/dev/null 2>&1 || true
+echo "LinuxCNC Notify installed. Run: sudo linuxcnc-notify pair"

@@ -1,0 +1,4 @@
+#!/usr/bin/python3
+from linuxcnc_notify.cli import main
+
+raise SystemExit(main())

@@ -1,0 +1,18 @@
+[Unit]
+Description=LinuxCNC remote notification monitor
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/linuxcnc-notify daemon
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/etc/linuxcnc-notify /var/lib/linuxcnc-notify
+
+[Install]
+WantedBy=multi-user.target

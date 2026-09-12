@@ -1,0 +1,14 @@
+Package: linuxcnc-notify
+Version: 0.1.0
+Section: misc
+Priority: optional
+Architecture: all
+Depends: python3 (>= 3.7), python3-linuxcnc
+Recommends: qrencode
+Maintainer: bucklevision <bucklevision@users.noreply.github.com>
+Homepage: https://github.com/bucklevision/linuxcnc-notify
+Description: Read-only remote notifications for LinuxCNC
+ Monitors the standard LinuxCNC status interface and sends program stop,
+ pause, machine state, limit, drive and interpreter fault notifications to
+ an ntfy-compatible HTTPS service. Includes automatic topic generation,
+ pairing commands and a local status page. It never controls LinuxCNC.
