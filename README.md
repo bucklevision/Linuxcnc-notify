@@ -10,7 +10,7 @@ issue machine commands.
 Download the `.deb`, then:
 
 ```bash
-sudo apt install ./linuxcnc-notify_0.2.0_all.deb
+sudo apt install ./linuxcnc-notify_0.2.1_all.deb
 sudo linuxcnc-notify setup
 sudo linuxcnc-notify doctor
 sudo linuxcnc-notify pair

@@ -75,7 +75,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.0"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.1"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -197,6 +197,12 @@ def program_details(filename, line, prefix="Line"):
     return f"{filename}\n{prefix}: {line}"
 
 
+def reported_line(status, program_active):
+    current_line = int(getattr(status, "current_line", 0) or 0)
+    motion_line = int(getattr(status, "motion_line", 0) or 0)
+    return motion_line if program_active and motion_line > 0 else current_line
+
+
 def daemon():
     config = ensure_config()
     settings = load_notification_config()
@@ -235,7 +241,7 @@ def daemon():
             is_active = active(status, linuxcnc)
             is_paused = status.interp_state == getattr(linuxcnc, "INTERP_PAUSED", -1)
             filename = os.path.basename(status.file) if getattr(status, "file", "") else "No program"
-            line = int(getattr(status, "current_line", 0))
+            line = reported_line(status, is_active)
             groups = fault_groups(status)
             current_faults = set().union(*groups.values())
             state_error = getattr(status, "state", None) == getattr(linuxcnc, "RCS_ERROR", object())
@@ -294,8 +300,10 @@ def daemon():
                 }
                 if status.task_state in states:
                     event, title = states[status.task_state]
-                    send(event, title, config["machine_name"], 5 if event == "estop_engaged" else 3,
-                         ["warning"] if event == "estop_engaged" else None, is_active)
+                    interrupted = event in ("machine_off", "estop_engaged") and (is_active or previous_active)
+                    message = program_details(last_program, last_line, "Last motion line") if interrupted else config["machine_name"]
+                    send(event, title, message, 5 if event == "estop_engaged" else 3,
+                         ["warning"] if event == "estop_engaged" else None, interrupted)
             if is_homing and not previous_homing:
                 send("homing_started", "LinuxCNC homing started", config["machine_name"], running=is_active)
             if previous_homing and not is_homing and all_homed:

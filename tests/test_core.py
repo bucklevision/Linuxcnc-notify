@@ -8,6 +8,7 @@ from unittest import mock
 from linuxcnc_notify.core import (active, default_config, ensure_config,
                                   event_enabled, faults,
                                   load_notification_config,
+                                  reported_line,
                                   subscription_deep_link)
 from linuxcnc_notify.dashboard import collect_variables
 
@@ -85,6 +86,15 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(grouped["Overview"]["task_state"], 4)
         self.assertEqual(grouped["Program and interpreter"]["file"], "/tmp/example.ngc")
         self.assertEqual(grouped["Other"]["custom_value"], "present")
+
+    def test_running_line_uses_motion_not_interpreter_read_ahead(self):
+        status = mock.Mock(current_line=198, motion_line=20)
+        self.assertEqual(reported_line(status, True), 20)
+        self.assertEqual(reported_line(status, False), 198)
+
+    def test_running_line_falls_back_before_motion_starts(self):
+        status = mock.Mock(current_line=7, motion_line=0)
+        self.assertEqual(reported_line(status, True), 7)
 
 
 if __name__ == "__main__":
