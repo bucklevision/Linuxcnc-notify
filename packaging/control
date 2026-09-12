@@ -1,5 +1,5 @@
 Package: linuxcnc-notify
-Version: 0.2.2
+Version: 0.2.3
 Section: misc
 Priority: optional
 Architecture: all

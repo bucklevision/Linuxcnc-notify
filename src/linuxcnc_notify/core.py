@@ -75,7 +75,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.2"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.3"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -209,6 +209,19 @@ def reported_line(status, program_active):
     return motion_line if program_active and motion_line > 0 else current_line
 
 
+def task_state_event(previous, current, linuxcnc):
+    estop = getattr(linuxcnc, "STATE_ESTOP", object())
+    estop_reset = getattr(linuxcnc, "STATE_ESTOP_RESET", object())
+    if current == estop_reset and previous != estop:
+        return None
+    return {
+        getattr(linuxcnc, "STATE_ON", object()): ("machine_on", "LinuxCNC machine power on"),
+        getattr(linuxcnc, "STATE_OFF", object()): ("machine_off", "LinuxCNC machine power off"),
+        estop: ("estop_engaged", "LinuxCNC E-stop engaged"),
+        estop_reset: ("estop_reset", "LinuxCNC E-stop reset"),
+    }.get(current)
+
+
 def daemon():
     config = ensure_config()
     settings = load_notification_config()
@@ -298,14 +311,9 @@ def daemon():
                 send("program_stopped", f"LinuxCNC: {reason}", program_details(last_program, last_line, "Last reported line"), 4, ["stop_sign"], True)
 
             if previous_task_state is not None and status.task_state != previous_task_state:
-                states = {
-                    getattr(linuxcnc, "STATE_ON", object()): ("machine_on", "LinuxCNC machine power on"),
-                    getattr(linuxcnc, "STATE_OFF", object()): ("machine_off", "LinuxCNC machine power off"),
-                    getattr(linuxcnc, "STATE_ESTOP", object()): ("estop_engaged", "LinuxCNC E-stop engaged"),
-                    getattr(linuxcnc, "STATE_ESTOP_RESET", object()): ("estop_reset", "LinuxCNC E-stop reset"),
-                }
-                if status.task_state in states:
-                    event, title = states[status.task_state]
+                state_event = task_state_event(previous_task_state, status.task_state, linuxcnc)
+                if state_event:
+                    event, title = state_event
                     interrupted = event in ("machine_off", "estop_engaged") and (is_active or previous_active)
                     message = program_details(last_program, last_line, "Last motion line") if interrupted else config["machine_name"]
                     send(event, title, message, 5 if event == "estop_engaged" else 3,

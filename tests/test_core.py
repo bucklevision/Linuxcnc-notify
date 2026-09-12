@@ -10,6 +10,7 @@ from linuxcnc_notify.core import (active, default_config, ensure_config,
                                   load_notification_config,
                                   paused,
                                   reported_line,
+                                  task_state_event,
                                   subscription_deep_link)
 from linuxcnc_notify.dashboard import collect_variables
 
@@ -18,6 +19,10 @@ class FakeLinuxCNC:
     INTERP_READING = 1
     INTERP_WAITING = 2
     INTERP_PAUSED = 3
+    STATE_ESTOP = 10
+    STATE_ESTOP_RESET = 11
+    STATE_OFF = 12
+    STATE_ON = 13
 
 
 class CoreTests(unittest.TestCase):
@@ -101,6 +106,11 @@ class CoreTests(unittest.TestCase):
         self.assertTrue(paused(mock.Mock(paused=True, task_paused=0, interp_state=1), FakeLinuxCNC))
         self.assertTrue(paused(mock.Mock(paused=False, task_paused=1, interp_state=1), FakeLinuxCNC))
         self.assertFalse(paused(mock.Mock(paused=False, task_paused=0, interp_state=1), FakeLinuxCNC))
+
+    def test_estop_reset_requires_previous_estop_state(self):
+        self.assertIsNone(task_state_event(FakeLinuxCNC.STATE_ON, FakeLinuxCNC.STATE_ESTOP_RESET, FakeLinuxCNC))
+        self.assertEqual(task_state_event(FakeLinuxCNC.STATE_ESTOP, FakeLinuxCNC.STATE_ESTOP_RESET, FakeLinuxCNC)[0], "estop_reset")
+        self.assertEqual(task_state_event(FakeLinuxCNC.STATE_ON, FakeLinuxCNC.STATE_ESTOP, FakeLinuxCNC)[0], "estop_engaged")
 
 
 if __name__ == "__main__":
