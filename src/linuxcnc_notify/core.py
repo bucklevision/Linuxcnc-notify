@@ -4,6 +4,7 @@ import secrets
 import socket
 import threading
 import time
+import traceback
 import urllib.error
 import urllib.request
 import urllib.parse
@@ -57,7 +58,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1.3"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1.4"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -141,7 +142,9 @@ def active(status, linuxcnc):
 
 def faults(status):
     found = []
-    for index, joint in enumerate(getattr(status, "joint", ())):
+    all_joints = getattr(status, "joint", ())
+    configured = int(getattr(status, "joints", len(all_joints)))
+    for index, joint in enumerate(all_joints[:configured]):
         if joint.get("fault"):
             found.append(f"joint {index} drive fault")
         if joint.get("min_hard_limit"):
@@ -167,25 +170,33 @@ def daemon():
     was_connected = False
     status = None
     linuxcnc = None
+    operation = "starting"
 
     while True:
         try:
+            operation = "loading LinuxCNC Python module"
             if linuxcnc is None:
                 import linuxcnc as module
                 linuxcnc = module
+            operation = "opening LinuxCNC status channel"
             if status is None:
                 status = linuxcnc.stat()
+            operation = "polling LinuxCNC status"
             status.poll()
+            operation = "reading interpreter status"
             is_active = active(status, linuxcnc)
             is_paused = status.interp_state == getattr(linuxcnc, "INTERP_PAUSED", -1)
             filename = os.path.basename(status.file) if getattr(status, "file", "") else "No program"
             line = int(getattr(status, "current_line", 0))
+            operation = "reading configured joint status"
             current_faults = set(faults(status))
+            operation = "reading execution status"
             state_error = getattr(status, "state", None) == getattr(linuxcnc, "RCS_ERROR", object())
             exec_error = getattr(status, "exec_state", None) == getattr(linuxcnc, "EXEC_ERROR", object())
             interp_code = int(getattr(status, "interpreter_errcode", 0) or 0)
             current_error = bool(state_error or exec_error or interp_code)
 
+            operation = "updating shared status"
             shared.update(connected=True, state="paused" if is_paused else "running" if is_active else "idle",
                           program=filename, line=line, faults=sorted(current_faults), updated=time.time())
 
@@ -212,8 +223,9 @@ def daemon():
             previous_error = current_error
             was_connected = True
         except Exception as exc:
+            traceback.print_exc()
             status = None
-            shared.update(connected=False, state="waiting for LinuxCNC", detail=str(exc), updated=time.time())
+            shared.update(connected=False, state="waiting for LinuxCNC", detail=f"{operation}: {exc}", updated=time.time())
             if previous_active and was_connected:
                 try:
                     publish(config, "LinuxCNC connection lost", "LinuxCNC disappeared while a program was active", 5, ["warning"])

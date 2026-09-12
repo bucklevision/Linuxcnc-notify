@@ -30,8 +30,15 @@ class CoreTests(unittest.TestCase):
 
     def test_faults(self):
         status = mock.Mock()
+        status.joints = 2
         status.joint = [{"fault": 1}, {"max_hard_limit": 1}]
         self.assertEqual(faults(status), ["joint 0 drive fault", "joint 1 maximum hard limit"])
+
+    def test_unused_compiled_joint_slots_are_ignored(self):
+        status = mock.Mock()
+        status.joints = 1
+        status.joint = [{"fault": 0}, {"fault": 1}]
+        self.assertEqual(faults(status), [])
 
     def test_active(self):
         status = mock.Mock(interp_state=FakeLinuxCNC.INTERP_PAUSED)
