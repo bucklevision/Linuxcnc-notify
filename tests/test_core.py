@@ -8,6 +8,7 @@ from unittest import mock
 from linuxcnc_notify.core import (active, default_config, ensure_config,
                                   event_enabled, faults,
                                   load_notification_config,
+                                  paused,
                                   reported_line,
                                   subscription_deep_link)
 from linuxcnc_notify.dashboard import collect_variables
@@ -95,6 +96,11 @@ class CoreTests(unittest.TestCase):
     def test_running_line_falls_back_before_motion_starts(self):
         status = mock.Mock(current_line=7, motion_line=0)
         self.assertEqual(reported_line(status, True), 7)
+
+    def test_pause_status_fields_are_used(self):
+        self.assertTrue(paused(mock.Mock(paused=True, task_paused=0, interp_state=1), FakeLinuxCNC))
+        self.assertTrue(paused(mock.Mock(paused=False, task_paused=1, interp_state=1), FakeLinuxCNC))
+        self.assertFalse(paused(mock.Mock(paused=False, task_paused=0, interp_state=1), FakeLinuxCNC))
 
 
 if __name__ == "__main__":

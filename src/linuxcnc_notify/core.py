@@ -75,7 +75,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.1"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.2"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -160,6 +160,12 @@ def active(status, linuxcnc):
     )
 
 
+def paused(status, linuxcnc):
+    return bool(getattr(status, "paused", False) or
+                getattr(status, "task_paused", False) or
+                getattr(status, "interp_state", None) == getattr(linuxcnc, "INTERP_PAUSED", object()))
+
+
 def faults(status):
     found = []
     all_joints = getattr(status, "joint", ())
@@ -239,7 +245,7 @@ def daemon():
             status.poll()
             operation = "reading LinuxCNC status"
             is_active = active(status, linuxcnc)
-            is_paused = status.interp_state == getattr(linuxcnc, "INTERP_PAUSED", -1)
+            is_paused = paused(status, linuxcnc)
             filename = os.path.basename(status.file) if getattr(status, "file", "") else "No program"
             line = reported_line(status, is_active)
             groups = fault_groups(status)
