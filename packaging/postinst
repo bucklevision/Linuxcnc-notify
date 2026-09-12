@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-install -d -m 700 /etc/linuxcnc-notify
+install -d -m 755 /etc/linuxcnc-notify
 install -d -m 700 /var/lib/linuxcnc-notify
 if [ ! -e /etc/linuxcnc-notify/config.json ]; then
     LINUXCNC_NOTIFY_CONFIG=/etc/linuxcnc-notify/config.json /usr/bin/linuxcnc-notify show-config >/dev/null
