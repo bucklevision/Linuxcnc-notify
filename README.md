@@ -10,15 +10,17 @@ issue machine commands.
 Download the `.deb`, then:
 
 ```bash
-sudo apt install ./linuxcnc-notify_0.1.1_all.deb
+sudo apt install ./linuxcnc-notify_0.1.2_all.deb
 sudo linuxcnc-notify doctor
 sudo linuxcnc-notify pair
 sudo linuxcnc-notify test
 ```
 
 The installer generates a long random topic and preserves it during upgrades.
-Install the ntfy app on the phone and subscribe using the server and topic shown
-by `pair`. If `qrencode` is present, the command also prints a terminal QR code.
+Install the ntfy app on the phone and run `pair`. If `qrencode` is present, the
+command prints a terminal QR code containing an `ntfy://` app link which opens
+the installed ntfy app and subscribes to the generated topic. The server and
+topic remain visible as a manual fallback.
 
 The local status and pairing page is available on the LinuxCNC computer at
 <http://localhost:8765/>. It binds only to localhost by default.

@@ -8,7 +8,7 @@ import sys
 import urllib.error
 
 from . import __version__
-from .core import CONFIG_PATH, daemon, ensure_config, load_config, publish
+from .core import CONFIG_PATH, daemon, ensure_config, load_config, publish, subscription_deep_link
 
 
 def pair(config):
@@ -17,9 +17,9 @@ def pair(config):
     print(f"Topic:  {config['topic']}")
     print(f"Web:    http://localhost:{config['web_port']}/pair")
     if shutil.which("qrencode"):
-        print("\nScan this code to open the topic:\n")
-        subprocess.run(["qrencode", "-t", "ANSIUTF8", config["server"].rstrip("/") + "/" + config["topic"]], check=False)
-    print("\nInstall the ntfy phone app, then subscribe using the server and topic above.")
+        print("\nScan this code to subscribe in the ntfy app:\n")
+        subprocess.run(["qrencode", "-t", "ANSIUTF8", subscription_deep_link(config)], check=False)
+    print("\nThe QR uses ntfy's ntfy:// app link. If app-link handling is disabled, add the server and topic shown above manually.")
 
 
 def doctor():

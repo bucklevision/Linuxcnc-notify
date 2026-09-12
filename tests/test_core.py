@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from linuxcnc_notify.core import active, default_config, ensure_config, faults
+from linuxcnc_notify.core import active, default_config, ensure_config, faults, subscription_deep_link
 
 
 class FakeLinuxCNC:
@@ -36,6 +36,19 @@ class CoreTests(unittest.TestCase):
     def test_active(self):
         status = mock.Mock(interp_state=FakeLinuxCNC.INTERP_PAUSED)
         self.assertTrue(active(status, FakeLinuxCNC))
+
+    def test_ntfy_app_deep_link(self):
+        config = default_config()
+        config.update({"server": "https://ntfy.sh", "topic": "linuxcnc-secret", "machine_name": "Workshop CNC"})
+        self.assertEqual(
+            subscription_deep_link(config),
+            "ntfy://ntfy.sh/linuxcnc-secret?display=Workshop+CNC+LinuxCNC",
+        )
+
+    def test_insecure_self_hosted_deep_link(self):
+        config = default_config()
+        config.update({"server": "http://cnc.local:8080", "topic": "secret", "machine_name": "CNC"})
+        self.assertIn("secure=false", subscription_deep_link(config))
 
 
 if __name__ == "__main__":

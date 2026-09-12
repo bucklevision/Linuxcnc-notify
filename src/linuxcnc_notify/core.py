@@ -6,6 +6,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -56,11 +57,23 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1.1"},
+        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.1.2"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
         response.read()
+
+
+def subscription_deep_link(config):
+    """Return the ntfy app's documented custom-scheme subscription link."""
+    server = urllib.parse.urlparse(config["server"])
+    if server.scheme not in ("http", "https") or not server.netloc:
+        raise ValueError("ntfy server must be an http or https URL")
+    query = {"display": f"{config['machine_name']} LinuxCNC"}
+    if server.scheme == "http":
+        query["secure"] = "false"
+    topic = urllib.parse.quote(config["topic"], safe="")
+    return f"ntfy://{server.netloc}/{topic}?{urllib.parse.urlencode(query)}"
 
 
 class SharedStatus:
@@ -85,7 +98,7 @@ def web_handler(shared, config):
                 content_type = "application/json"
             elif self.path in ("/", "/pair"):
                 state = shared.snapshot()
-                subscription = config["server"].rstrip("/") + "/" + config["topic"]
+                subscription = subscription_deep_link(config)
                 body = ("<!doctype html><meta name='viewport' content='width=device-width'>"
                         "<title>LinuxCNC Notify</title><style>body{font:18px system-ui;max-width:46rem;"
                         "margin:3rem auto;padding:1rem}code{overflow-wrap:anywhere}</style>"
@@ -93,7 +106,7 @@ def web_handler(shared, config):
                         f"<p>Machine: {config['machine_name']}</p><h2>Phone pairing</h2>"
                         "<p>Install ntfy, add a subscription using this server and topic:</p>"
                         f"<p>Server: <code>{config['server']}</code><br>Topic: "
-                        f"<code>{config['topic']}</code></p><p><a href='{subscription}'>Open topic</a></p>").encode()
+                        f"<code>{config['topic']}</code></p><p><a href='{subscription}'>Open in ntfy app</a></p>").encode()
                 content_type = "text/html; charset=utf-8"
             else:
                 self.send_error(404)
