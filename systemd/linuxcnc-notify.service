@@ -10,7 +10,6 @@ Restart=always
 RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectHome=true
 ProtectSystem=strict
 ReadWritePaths=/etc/linuxcnc-notify /var/lib/linuxcnc-notify
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-VERSION=${VERSION:-0.1.4}
+VERSION=${VERSION:-0.1.5}
 BUILD="$ROOT/build/linuxcnc-notify_${VERSION}_all"
 OUT="$ROOT/dist"
 rm -rf "$BUILD"
