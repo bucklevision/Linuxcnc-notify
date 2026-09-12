@@ -12,7 +12,7 @@ import urllib.error
 from pathlib import Path
 
 from . import __version__
-from .core import CONFIG_PATH, daemon, ensure_config, load_config, publish, subscription_deep_link
+from .core import CONFIG_PATH, NOTIFY_CONFIG_PATH, daemon, ensure_config, load_config, publish, subscription_deep_link
 
 DROP_IN = "/etc/systemd/system/linuxcnc-notify.service.d/user.conf"
 
@@ -64,6 +64,8 @@ def setup_user(username=None):
     os.chown(CONFIG_PATH, account.pw_uid, account.pw_gid)
     os.chmod(CONFIG_PATH, 0o600)
     CONFIG_PATH.parent.chmod(0o755)
+    if NOTIFY_CONFIG_PATH.exists():
+        os.chmod(NOTIFY_CONFIG_PATH, 0o644)
 
     state_directory = Path("/var/lib/linuxcnc-notify")
     state_directory.mkdir(parents=True, exist_ok=True)
@@ -91,6 +93,7 @@ def main():
     sub.add_parser("daemon")
     sub.add_parser("pair")
     sub.add_parser("show-config")
+    sub.add_parser("show-notifications")
     sub.add_parser("test")
     sub.add_parser("doctor")
     setup_parser = sub.add_parser("setup")
@@ -104,6 +107,8 @@ def main():
             pair(config)
         elif args.command == "show-config":
             print(json.dumps(config, indent=2))
+        elif args.command == "show-notifications":
+            print(NOTIFY_CONFIG_PATH.read_text(encoding="utf-8"))
         elif args.command == "test":
             publish(config, "LinuxCNC Notify test", f"Notifications are configured for {config['machine_name']}", tags=["white_check_mark"])
             print("Test notification sent.")

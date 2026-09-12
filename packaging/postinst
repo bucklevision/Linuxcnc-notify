@@ -5,6 +5,9 @@ install -d -m 700 /var/lib/linuxcnc-notify
 if [ ! -e /etc/linuxcnc-notify/config.json ]; then
     LINUXCNC_NOTIFY_CONFIG=/etc/linuxcnc-notify/config.json /usr/bin/linuxcnc-notify show-config >/dev/null
 fi
+if [ ! -e /etc/linuxcnc-notify/notify.conf ]; then
+    install -m 644 /usr/share/linuxcnc-notify/notify.conf /etc/linuxcnc-notify/notify.conf
+fi
 chmod 600 /etc/linuxcnc-notify/config.json
 systemctl daemon-reload >/dev/null 2>&1 || true
 if [ -e /etc/systemd/system/linuxcnc-notify.service.d/user.conf ]; then

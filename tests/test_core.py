@@ -5,7 +5,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from linuxcnc_notify.core import active, default_config, ensure_config, faults, subscription_deep_link
+from linuxcnc_notify.core import (active, default_config, ensure_config,
+                                  event_enabled, faults,
+                                  load_notification_config,
+                                  subscription_deep_link)
+from linuxcnc_notify.dashboard import collect_variables
 
 
 class FakeLinuxCNC:
@@ -56,6 +60,31 @@ class CoreTests(unittest.TestCase):
         config = default_config()
         config.update({"server": "http://cnc.local:8080", "topic": "secret", "machine_name": "CNC"})
         self.assertIn("secure=false", subscription_deep_link(config))
+
+    def test_notification_config_and_running_mode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notify.conf"
+            path.write_text("[notifications]\nprogram_started=yes\nmachine_off=no\nhard_limit=running\n")
+            settings = load_notification_config(path)
+        self.assertTrue(event_enabled(settings, "program_started"))
+        self.assertFalse(event_enabled(settings, "machine_off"))
+        self.assertFalse(event_enabled(settings, "hard_limit", False))
+        self.assertTrue(event_enabled(settings, "hard_limit", True))
+
+    def test_dashboard_collects_and_groups_variables(self):
+        class Status:
+            task_state = 4
+            file = "/tmp/example.ngc"
+            position = (1.0, 2.0, 3.0)
+            custom_value = "present"
+
+            def poll(self):
+                pass
+
+        grouped = collect_variables(Status())
+        self.assertEqual(grouped["Overview"]["task_state"], 4)
+        self.assertEqual(grouped["Program and interpreter"]["file"], "/tmp/example.ngc")
+        self.assertEqual(grouped["Other"]["custom_value"], "present")
 
 
 if __name__ == "__main__":

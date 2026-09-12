@@ -10,7 +10,7 @@ issue machine commands.
 Download the `.deb`, then:
 
 ```bash
-sudo apt install ./linuxcnc-notify_0.1.5_all.deb
+sudo apt install ./linuxcnc-notify_0.2.0_all.deb
 sudo linuxcnc-notify setup
 sudo linuxcnc-notify doctor
 sudo linuxcnc-notify pair
@@ -41,18 +41,20 @@ systemctl status linuxcnc-notify
 journalctl -u linuxcnc-notify -f
 ```
 
-Configuration is stored at `/etc/linuxcnc-notify/config.json`. Change `server`
-to use a self-hosted ntfy instance, then restart the service.
+Server and topic configuration is stored at `/etc/linuxcnc-notify/config.json`.
+Notification choices are in `/etc/linuxcnc-notify/notify.conf`. Each event accepts
+`yes`, `no`, or `running` (send only while a program is active). After editing it,
+restart with `sudo systemctl restart linuxcnc-notify`.
 
-## Current event detection
+## Event detection
 
-- Program start (disabled by default)
-- Pause
-- Transition from running to stopped
-- E-stop or machine power-off
-- LinuxCNC connection loss during an active program
+- LinuxCNC connected or disconnected
+- Program started, paused, resumed or stopped
+- Machine power on or off; E-stop engaged or reset
+- Homing started or completed
 - Joint drive, hard-limit and soft-limit faults
-- Execution/interpreter error states
+- Execution/interpreter errors
+- Tool, spindle, flood coolant and mist coolant changes
 
 LinuxCNC does not expose an unambiguous completion reason in every situation.
 Version 0.1 therefore reports a clean transition as **program stopped**, rather
