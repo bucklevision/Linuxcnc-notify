@@ -10,13 +10,18 @@ issue machine commands.
 Download the `.deb`, then:
 
 ```bash
-sudo apt install ./linuxcnc-notify_0.1.2_all.deb
+sudo apt install ./linuxcnc-notify_0.1.3_all.deb
+sudo linuxcnc-notify setup
 sudo linuxcnc-notify doctor
 sudo linuxcnc-notify pair
 sudo linuxcnc-notify test
 ```
 
 The installer generates a long random topic and preserves it during upgrades.
+`setup` detects the account which invoked `sudo` and configures the system
+service to run as that user. This is required because LinuxCNC's memory-mapped
+status data is available to the LinuxCNC desktop account, not to a root daemon.
+For unattended provisioning use `sudo linuxcnc-notify setup --user USERNAME`.
 Install the ntfy app on the phone and run `pair`. If `qrencode` is present, the
 command prints a terminal QR code containing an `ntfy://` app link which opens
 the installed ntfy app and subscribes to the generated topic. The server and

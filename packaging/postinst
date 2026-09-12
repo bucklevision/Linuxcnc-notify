@@ -7,5 +7,10 @@ if [ ! -e /etc/linuxcnc-notify/config.json ]; then
 fi
 chmod 600 /etc/linuxcnc-notify/config.json
 systemctl daemon-reload >/dev/null 2>&1 || true
-systemctl enable --now linuxcnc-notify.service >/dev/null 2>&1 || true
-echo "LinuxCNC Notify installed. Run: sudo linuxcnc-notify pair"
+if [ -e /etc/systemd/system/linuxcnc-notify.service.d/user.conf ]; then
+    systemctl enable --now linuxcnc-notify.service >/dev/null 2>&1 || true
+    systemctl restart linuxcnc-notify.service >/dev/null 2>&1 || true
+else
+    systemctl disable --now linuxcnc-notify.service >/dev/null 2>&1 || true
+fi
+echo "LinuxCNC Notify installed. Run: sudo linuxcnc-notify setup"
