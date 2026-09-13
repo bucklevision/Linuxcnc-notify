@@ -63,8 +63,8 @@ DASHBOARD_HTML = """<!doctype html>
 :root{color-scheme:light dark}body{font:15px system-ui;margin:0;background:#17191c;color:#e8e8e8}
 header{position:sticky;top:0;background:#20242a;padding:14px 20px;border-bottom:1px solid #444;z-index:2}
 h1{font-size:21px;margin:0 0 5px}.summary{display:flex;gap:18px;flex-wrap:wrap}.ok{color:#69db7c}.bad{color:#ff8787}
-main{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
-section{background:#20242a;border:1px solid #3b4048;border-radius:8px;overflow:hidden}h2{font-size:16px;margin:0;padding:10px 12px;background:#292e35}
+main{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start}
+details{background:#20242a;border:1px solid #3b4048;border-radius:8px;overflow:hidden}summary{font-size:16px;font-weight:600;padding:10px 12px;background:#292e35;cursor:pointer;user-select:none}
 table{border-collapse:collapse;width:100%}td{padding:6px 10px;border-top:1px solid #343941;vertical-align:top}td:first-child{width:38%;color:#9ec5fe;font-family:monospace}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:12px ui-monospace,monospace}.muted{color:#aaa}
 </style></head><body><header><h1>LinuxCNC Notify</h1><div class="summary" id="summary">Loading…</div></header><main id="groups"></main>
@@ -72,11 +72,12 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font:12px ui-monospace,
 function value(v){if(v===null)return 'null';if(typeof v==='object')return JSON.stringify(v,null,2);return String(v)}
 function draw(data){
  const s=document.getElementById('summary');s.replaceChildren();
- const items=[['Connection',data.connected?'Connected':'Disconnected'],['State',data.state||'unknown'],[data.program_label||'Program',data.program||'—'],['Line',data.line??'—'],['Updated',new Date((data.updated||0)*1000).toLocaleTimeString()]];
+ const items=[['Version',data.version||'unknown'],['Connection',data.connected?'Connected':'Disconnected'],['State',data.state||'unknown'],[data.program_label||'Program',data.program||'—'],['Line',data.line??'—'],['Updated',new Date((data.updated||0)*1000).toLocaleTimeString()]];
  for(const [k,v] of items){const span=document.createElement('span');span.textContent=k+': '+v;if(k==='Connection')span.className=data.connected?'ok':'bad';s.append(span)}
- const root=document.getElementById('groups');root.replaceChildren();
- for(const [title,vars] of Object.entries(data.variables||{})){const sec=document.createElement('section'),h=document.createElement('h2'),table=document.createElement('table');h.textContent=title;sec.append(h,table);
-  for(const [name,val] of Object.entries(vars)){const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td'),pre=document.createElement('pre');a.textContent=name;pre.textContent=value(val);b.append(pre);tr.append(a,b);table.append(tr)}root.append(sec)}
+ const root=document.getElementById('groups');
+ const opened=new Set([...root.querySelectorAll('details[open]')].map(item=>item.dataset.title));root.replaceChildren();
+ for(const [title,vars] of Object.entries(data.variables||{})){const box=document.createElement('details'),heading=document.createElement('summary'),table=document.createElement('table');box.dataset.title=title;box.open=opened.has(title);heading.textContent=title;box.append(heading,table);
+  for(const [name,val] of Object.entries(vars)){const tr=document.createElement('tr'),a=document.createElement('td'),b=document.createElement('td'),pre=document.createElement('pre');a.textContent=name;pre.textContent=value(val);b.append(pre);tr.append(a,b);table.append(tr)}root.append(box)}
 }
 async function refresh(){try{const r=await fetch('/api/status',{cache:'no-store'});draw(await r.json())}catch(e){document.getElementById('summary').textContent='Status request failed: '+e}}
 refresh();setInterval(refresh,3000);

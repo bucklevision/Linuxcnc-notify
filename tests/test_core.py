@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from linuxcnc_notify import __version__
 from linuxcnc_notify.core import (active, default_config, ensure_config,
                                   event_enabled, faults,
                                   load_notification_config,
@@ -13,6 +14,7 @@ from linuxcnc_notify.core import (active, default_config, ensure_config,
                                   task_state_event,
                                   subscription_deep_link)
 from linuxcnc_notify.dashboard import collect_variables
+from linuxcnc_notify.dashboard import DASHBOARD_HTML
 
 
 class FakeLinuxCNC:
@@ -26,6 +28,13 @@ class FakeLinuxCNC:
 
 
 class CoreTests(unittest.TestCase):
+    def test_version_comes_from_version_file(self):
+        self.assertEqual(__version__, "0.3.0")
+
+    def test_dashboard_sections_are_collapsible(self):
+        self.assertIn("document.createElement('details')", DASHBOARD_HTML)
+        self.assertNotIn("box.open=true", DASHBOARD_HTML)
+
     def test_topic_is_random_and_long(self):
         first, second = default_config(), default_config()
         self.assertNotEqual(first["topic"], second["topic"])

@@ -30,6 +30,7 @@ def pair(config):
 
 def doctor():
     checks = [
+        ("LinuxCNC Notify", __version__, __version__ != "unknown"),
         ("Python", platform.python_version(), sys.version_info >= (3, 7)),
         ("LinuxCNC Python module", "available" if importlib.util.find_spec("linuxcnc") else "missing",
          importlib.util.find_spec("linuxcnc") is not None),

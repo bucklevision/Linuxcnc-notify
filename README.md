@@ -5,34 +5,52 @@ Python status interface and sends alerts through any ntfy-compatible HTTPS
 server. It does not consume LinuxCNC's single-consumer error queue and cannot
 issue machine commands.
 
-## Install
+## Installation on a LinuxCNC computer
 
-Download the current Debian package:
+These instructions are for a normal Debian-based LinuxCNC installation. The
+package installs its required software automatically.
 
-[linuxcnc-notify_0.2.3_all.deb](https://github.com/bucklevision/Linuxcnc-notify/raw/refs/heads/main/dist/linuxcnc-notify_0.2.3_all.deb)
+1. On the LinuxCNC computer, download
+   [linuxcnc-notify_0.3.0_all.deb](https://github.com/bucklevision/Linuxcnc-notify/raw/refs/heads/main/dist/linuxcnc-notify_0.3.0_all.deb).
+   Your browser will normally save it in the `Downloads` folder.
 
-Then install it:
+2. Open a terminal. On most LinuxCNC desktops, press `Ctrl` + `Alt` + `T`.
 
-```bash
-sudo apt install ./linuxcnc-notify_0.2.3_all.deb
-sudo linuxcnc-notify setup
-sudo linuxcnc-notify doctor
-sudo linuxcnc-notify pair
-sudo linuxcnc-notify test
-```
+3. Enter these commands one at a time:
 
-The installer generates a long random topic and preserves it during upgrades.
-`setup` detects the account which invoked `sudo` and configures the system
-service to run as that user. This is required because LinuxCNC's memory-mapped
-status data is available to the LinuxCNC desktop account, not to a root daemon.
-For unattended provisioning use `sudo linuxcnc-notify setup --user USERNAME`.
-Install the ntfy app on the phone and run `pair`. If `qrencode` is present, the
-command prints a terminal QR code containing an `ntfy://` app link which opens
-the installed ntfy app and subscribes to the generated topic. The server and
-topic remain visible as a manual fallback.
+   ```bash
+   cd ~/Downloads
+   sudo apt install ./linuxcnc-notify_0.3.0_all.deb
+   sudo linuxcnc-notify setup
+   ```
 
-The local status and pairing page is available on the LinuxCNC computer at
-<http://localhost:8765/>. It binds only to localhost by default.
+   Enter your Linux password if requested. Nothing appears while a password is
+   typed; this is normal. Press `Enter` when finished.
+
+4. Install the **ntfy** app on the phone. Then, on the LinuxCNC computer, run:
+
+   ```bash
+   sudo linuxcnc-notify pair
+   ```
+
+   In the phone app, add a subscription using the server and topic printed by
+   the command. The topic is generated uniquely for this computer. Keep it
+   private because anyone who knows it can receive its messages.
+
+5. Send a test notification:
+
+   ```bash
+   sudo linuxcnc-notify test
+   ```
+
+6. Start LinuxCNC and open <http://localhost:8765/> on the LinuxCNC computer.
+   The page should show **Connected**. Its detailed sections are collapsed by
+   default; click a section name to expand it.
+
+The generated topic and notification choices are preserved when a newer
+package is installed. If setup cannot identify the desktop account, use
+`sudo linuxcnc-notify setup --user USERNAME`, replacing `USERNAME` with the
+account used to run LinuxCNC.
 
 ## Commands
 
@@ -40,7 +58,9 @@ The local status and pairing page is available on the LinuxCNC computer at
 sudo linuxcnc-notify pair
 sudo linuxcnc-notify test
 sudo linuxcnc-notify show-config
+sudo linuxcnc-notify show-notifications
 sudo linuxcnc-notify doctor
+linuxcnc-notify --version
 systemctl status linuxcnc-notify
 journalctl -u linuxcnc-notify -f
 ```
@@ -75,6 +95,8 @@ chmod +x packaging/build-deb.sh
 ```
 
 The package is written to `dist/`.
+
+Version history is recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## Security
 

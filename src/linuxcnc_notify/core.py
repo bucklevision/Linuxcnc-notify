@@ -12,6 +12,7 @@ from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from . import __version__
 from .dashboard import DASHBOARD_HTML, collect_variables
 
 CONFIG_PATH = Path(os.environ.get("LINUXCNC_NOTIFY_CONFIG", "/etc/linuxcnc-notify/config.json"))
@@ -75,7 +76,7 @@ def publish(config, title, message, priority=3, tags=None):
     request = urllib.request.Request(
         config["server"].rstrip("/"),
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json", "User-Agent": "linuxcnc-notify/0.2.3"},
+        headers={"Content-Type": "application/json", "User-Agent": f"linuxcnc-notify/{__version__}"},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=10) as response:
@@ -97,7 +98,8 @@ def subscription_deep_link(config):
 class SharedStatus:
     def __init__(self):
         self.lock = threading.Lock()
-        self.data = {"connected": False, "state": "waiting", "machine": socket.gethostname()}
+        self.data = {"connected": False, "state": "waiting", "machine": socket.gethostname(),
+                     "version": __version__}
 
     def update(self, **values):
         with self.lock:
